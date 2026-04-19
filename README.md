@@ -78,4 +78,4 @@ zigzag_alloc_t alloc = zigzag_system_as_alloc(sys);
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT license.
