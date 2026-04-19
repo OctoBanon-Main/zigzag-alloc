@@ -26,3 +26,7 @@ opt-level = 3
 
 [profile.dev]
 panic = "abort"
+
+[features]
+default = ["std"]
+std = []
