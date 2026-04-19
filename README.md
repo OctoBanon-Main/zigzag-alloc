@@ -12,6 +12,7 @@ Before building the project, ensure you have the following installed:
 ## Steps to Build
 
 **Clone the repository:**
+
 First, clone the project repository to your local machine:
 
 ```bash
@@ -20,6 +21,7 @@ cd zigzag
 ```
 
 **Build the project:**
+
 To compile the library (including the static/dynamic libraries for C integration), run:
 
 ```bash
