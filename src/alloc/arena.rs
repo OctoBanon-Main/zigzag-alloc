@@ -12,16 +12,16 @@ struct Header {
 }
 
 pub struct ArenaAllocator<A: Allocator> {
-    backing: A,
-    last_alloc: Cell<Option<NonNull<u8>>>,
-    alloc_count: Cell<usize>,
+    backing:      A,
+    last_alloc:   Cell<Option<NonNull<u8>>>,
+    alloc_count:  Cell<usize>,
 }
 
 impl<A: Allocator> ArenaAllocator<A> {
     pub fn new(backing: A) -> Self {
         Self {
             backing,
-            last_alloc: Cell::new(None),
+            last_alloc:  Cell::new(None),
             alloc_count: Cell::new(0),
         }
     }
@@ -37,7 +37,6 @@ impl<A: Allocator> ArenaAllocator<A> {
         while let Some(full_ptr) = current {
             unsafe {
                 let header: Header = ptr::read(full_ptr.as_ptr() as *const Header);
-
                 current = header.next;
                 self.backing.dealloc(full_ptr, header.full_layout);
             }
@@ -57,7 +56,7 @@ impl<A: Allocator> Allocator for ArenaAllocator<A> {
         let full_ptr = unsafe { self.backing.alloc(full_layout)? };
 
         let header = Header {
-            next: self.last_alloc.get(),
+            next:        self.last_alloc.get(),
             full_layout,
         };
         unsafe { ptr::write(full_ptr.as_ptr() as *mut Header, header) };
@@ -69,4 +68,10 @@ impl<A: Allocator> Allocator for ArenaAllocator<A> {
     }
 
     unsafe fn dealloc(&self, _: NonNull<u8>, _: Layout) {}
+}
+
+impl<A: Allocator> Drop for ArenaAllocator<A> {
+    fn drop(&mut self) {
+        self.reset();
+    }
 }

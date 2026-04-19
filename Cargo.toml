@@ -30,3 +30,4 @@ panic = "abort"
 [features]
 default = ["std"]
 std = []
+ffi =[]
