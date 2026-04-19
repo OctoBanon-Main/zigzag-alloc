@@ -1,0 +1,18 @@
+[package]
+name = "zigzag"
+version = "1.0.0"
+edition = "2024"
+description = "A Zig-like allocators collection for Rust"
+authors = ["Maksim Bengraf <me@octobanon.com>"]
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+opt-level = 3
+
+[profile.dev]
+panic = "abort"
