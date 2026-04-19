@@ -41,7 +41,7 @@ Add the library to your logic and use explicit allocators:
 
 ```rust
 use zigzag::alloc::{system::SystemAllocator, arena::Arena};
-use zigzag::collections::ZigVec;
+use zigzag::ZigVec;
 
 let arena = Arena::new(SystemAllocator);
 let mut v = ZigVec::new(&arena);
