@@ -1,6 +1,6 @@
 use zigzag::alloc::{
     system::SystemAllocator,
-    arena::Arena,
+    arena::ArenaAllocator,
     pool::PoolAllocator,
     counting::CountingAllocator,
 };
@@ -20,7 +20,7 @@ fn main() {
 
     println!("=== ZigVec & Arena (Linear Allocation) ===");
     {
-        let arena = Arena::new(&sys);
+        let arena = ArenaAllocator::new(&sys);
         
         let mut v = ZigVec::new(&arena);
         for i in 0..5 {

@@ -11,13 +11,13 @@ struct Header {
     full_layout: Layout,
 }
 
-pub struct Arena<A: Allocator> {
+pub struct ArenaAllocator<A: Allocator> {
     backing: A,
     last_alloc: Cell<Option<NonNull<u8>>>,
     alloc_count: Cell<usize>,
 }
 
-impl<A: Allocator> Arena<A> {
+impl<A: Allocator> ArenaAllocator<A> {
     pub fn new(backing: A) -> Self {
         Self {
             backing,
@@ -48,7 +48,7 @@ impl<A: Allocator> Arena<A> {
     }
 }
 
-impl<A: Allocator> Allocator for Arena<A> {
+impl<A: Allocator> Allocator for ArenaAllocator<A> {
     unsafe fn alloc(&self, layout: Layout) -> Option<NonNull<u8>> {
         let (full_layout, user_offset) = Layout::new::<Header>()
             .extend(layout)

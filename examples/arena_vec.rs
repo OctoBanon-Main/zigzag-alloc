@@ -1,10 +1,10 @@
 use zigzag::alloc::system::SystemAllocator;
-use zigzag::alloc::arena::Arena;
+use zigzag::alloc::arena::ArenaAllocator;
 use zigzag::collections::ZigVec;
 
 fn main() {
     let sys = SystemAllocator;
-    let arena = Arena::new(&sys);
+    let arena = ArenaAllocator::new(&sys);
 
     let mut numbers = ZigVec::new(&arena);
 
