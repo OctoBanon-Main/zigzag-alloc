@@ -4,25 +4,25 @@ use zigzag::alloc::{
     pool::PoolAllocator,
     counting::CountingAllocator,
 };
-use zigzag::collections::{ZigBox, ZigVec, ZigString};
+use zigzag::collections::{ExBox, ExVec, ExString};
 use core::fmt::Write;
 
 fn main() {
     let sys = CountingAllocator::new(SystemAllocator);
     
-    println!("=== ZigBox & SystemAllocator ===");
+    println!("=== ExBox & SystemAllocator ===");
     {
-        let b = ZigBox::new(42, &sys).expect("Failed to alloc Box");
+        let b = ExBox::new(42, &sys).expect("Failed to alloc Box");
         println!("Box value: {}", *b);
     }
     let stats = sys.stats();
     println!("System stats after Box: {} bytes allocated\n", stats.bytes);
 
-    println!("=== ZigVec & Arena (Linear Allocation) ===");
+    println!("=== ExVec & Arena (Linear Allocation) ===");
     {
         let arena = ArenaAllocator::new(&sys);
         
-        let mut v = ZigVec::new(&arena);
+        let mut v = ExVec::new(&arena);
         for i in 0..5 {
             v.push(i * 10);
         }
@@ -32,12 +32,12 @@ fn main() {
         println!("Arena reset performed");
     }
 
-    println!("\n=== ZigString & Pool (Fixed Size Blocks) ===");
+    println!("\n=== ExString & Pool (Fixed Size Blocks) ===");
     {
         let pool = PoolAllocator::typed::<[u8; 64]>(&sys, 10)
             .expect("Failed to create Pool");
         
-        let mut s = ZigString::new(&pool);
+        let mut s = ExString::new(&pool);
         write!(s, "Hello from {}!", "ZigZag").unwrap();
         
         println!("String in Pool: {}", s.as_str());

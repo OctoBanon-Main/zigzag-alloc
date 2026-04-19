@@ -1,12 +1,12 @@
 use zigzag::alloc::system::SystemAllocator;
 use zigzag::alloc::arena::ArenaAllocator;
-use zigzag::collections::ZigVec;
+use zigzag::collections::ExVec;
 
 fn main() {
     let sys = SystemAllocator;
     let arena = ArenaAllocator::new(&sys);
 
-    let mut numbers = ZigVec::new(&arena);
+    let mut numbers = ExVec::new(&arena);
 
     for i in 1..=100 {
         numbers.push(i);

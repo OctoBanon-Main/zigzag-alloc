@@ -4,12 +4,12 @@ use core::{
 
 use crate::alloc::allocator::Allocator;
 
-pub struct ZigBox<'a, T> {
+pub struct ExBox<'a, T> {
     ptr: NonNull<T>,
     alloc: &'a dyn Allocator,
 }
 
-impl<'a, T> ZigBox<'a, T> {
+impl<'a, T> ExBox<'a, T> {
     pub fn new(value: T, alloc: &'a dyn Allocator) -> Option<Self> {
         let layout = Layout::new::<T>();
 
@@ -46,7 +46,7 @@ impl<'a, T> ZigBox<'a, T> {
     }
 }
 
-impl<T> Drop for ZigBox<'_, T> {
+impl<T> Drop for ExBox<'_, T> {
     fn drop(&mut self) {
         unsafe {
             ptr::drop_in_place(self.ptr.as_ptr());
@@ -58,27 +58,27 @@ impl<T> Drop for ZigBox<'_, T> {
     }
 }
 
-impl<T> Deref for ZigBox<'_, T> {
+impl<T> Deref for ExBox<'_, T> {
     type Target = T;
     fn deref(&self) -> &T { unsafe { self.ptr.as_ref() } }
 }
 
-impl<T> DerefMut for ZigBox<'_, T> {
+impl<T> DerefMut for ExBox<'_, T> {
     fn deref_mut(&mut self) -> &mut T { unsafe { self.ptr.as_mut() } }
 }
 
-impl<T: fmt::Debug> fmt::Debug for ZigBox<'_, T> {
+impl<T: fmt::Debug> fmt::Debug for ExBox<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
     }
 }
 
-impl<T: fmt::Display> fmt::Display for ZigBox<'_, T> {
+impl<T: fmt::Display> fmt::Display for ExBox<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(&**self, f)
     }
 }
 
-impl<T: PartialEq> PartialEq for ZigBox<'_, T> {
+impl<T: PartialEq> PartialEq for ExBox<'_, T> {
     fn eq(&self, other: &Self) -> bool { **self == **other }
 }

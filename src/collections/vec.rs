@@ -8,7 +8,7 @@ use core::{
 
 use crate::alloc::allocator::Allocator;
 
-pub struct ZigVec<'a, T> {
+pub struct ExVec<'a, T> {
     ptr: NonNull<T>,
     len: usize,
     cap: usize,
@@ -16,7 +16,7 @@ pub struct ZigVec<'a, T> {
     _marker: PhantomData<T>,
 }
 
-impl<'a, T> ZigVec<'a, T> {
+impl<'a, T> ExVec<'a, T> {
     pub fn new(alloc: &'a dyn Allocator) -> Self {
         Self {
             ptr: NonNull::dangling(),
@@ -82,7 +82,7 @@ impl<'a, T> ZigVec<'a, T> {
 
     #[cold]
     fn grow(&mut self) {
-        assert!(self.try_grow(), "ZigVec: out of memory");
+        assert!(self.try_grow(), "ExVec: out of memory");
     }
 
     fn try_grow(&mut self) -> bool {
@@ -106,7 +106,7 @@ impl<'a, T> ZigVec<'a, T> {
     }
 }
 
-impl<T> Drop for ZigVec<'_, T> {
+impl<T> Drop for ExVec<'_, T> {
     fn drop(&mut self) {
         if self.cap == 0 { return; }
         for i in 0..self.len {
@@ -118,17 +118,17 @@ impl<T> Drop for ZigVec<'_, T> {
     }
 }
 
-impl<T> Deref for ZigVec<'_, T> {
+impl<T> Deref for ExVec<'_, T> {
     type Target = [T];
     fn deref(&self) -> &[T] { self.as_slice() }
 }
-impl<T> DerefMut for ZigVec<'_, T> {
+impl<T> DerefMut for ExVec<'_, T> {
     fn deref_mut(&mut self) -> &mut [T] { self.as_mut_slice() }
 }
-impl<T> Index<usize> for ZigVec<'_, T> {
+impl<T> Index<usize> for ExVec<'_, T> {
     type Output = T;
     fn index(&self, i: usize) -> &T { &self.as_slice()[i] }
 }
-impl<T> IndexMut<usize> for ZigVec<'_, T> {
+impl<T> IndexMut<usize> for ExVec<'_, T> {
     fn index_mut(&mut self, i: usize) -> &mut T { &mut self.as_mut_slice()[i] }
 }

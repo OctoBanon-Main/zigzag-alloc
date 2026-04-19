@@ -9,4 +9,4 @@ pub mod collections;
 #[cfg(feature = "ffi")]
 pub mod ffi;
 
-pub use collections::{ZigBox, ZigVec, ZigString};
+pub use collections::{ExBox, ExVec, ExString};

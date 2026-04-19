@@ -2,6 +2,6 @@ pub mod vec;
 pub mod boxed;
 pub mod string;
 
-pub use vec::ZigVec;
-pub use boxed::ZigBox;
-pub use string::ZigString;
+pub use vec::ExVec;
+pub use boxed::ExBox;
+pub use string::ExString;

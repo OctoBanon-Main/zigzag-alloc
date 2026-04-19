@@ -1,15 +1,15 @@
 use core::fmt::{self, Write as FmtWrite};
 
 use crate::alloc::allocator::Allocator;
-use super::vec::ZigVec;
+use super::vec::ExVec;
 
-pub struct ZigString<'a> {
-    buf: ZigVec<'a, u8>,
+pub struct ExString<'a> {
+    buf: ExVec<'a, u8>,
 }
 
-impl<'a> ZigString<'a> {
+impl<'a> ExString<'a> {
     pub fn new(alloc: &'a dyn Allocator) -> Self {
-        Self { buf: ZigVec::new(alloc) }
+        Self { buf: ExVec::new(alloc) }
     }
 
     pub fn from_str(s: &str, alloc: &'a dyn Allocator) -> Self {
@@ -48,29 +48,29 @@ impl<'a> ZigString<'a> {
     }
 }
 
-impl FmtWrite for ZigString<'_> {
+impl FmtWrite for ExString<'_> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.push_str(s);
         Ok(())
     }
 }
 
-impl fmt::Display for ZigString<'_> {
+impl fmt::Display for ExString<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_str())
     }
 }
 
-impl fmt::Debug for ZigString<'_> {
+impl fmt::Debug for ExString<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.as_str())
     }
 }
 
-impl PartialEq<str> for ZigString<'_> {
+impl PartialEq<str> for ExString<'_> {
     fn eq(&self, other: &str) -> bool { self.as_str() == other }
 }
 
-impl PartialEq for ZigString<'_> {
+impl PartialEq for ExString<'_> {
     fn eq(&self, other: &Self) -> bool { self.as_str() == other.as_str() }
 }

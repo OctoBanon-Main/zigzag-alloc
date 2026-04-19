@@ -1,7 +1,7 @@
 use std::cell::UnsafeCell;
 
 use zigzag::alloc::bump::BumpAllocator;
-use zigzag::collections::ZigVec;
+use zigzag::collections::ExVec;
 
 struct SyncCell<T>(UnsafeCell<T>);
 
@@ -14,7 +14,7 @@ fn main() {
         BumpAllocator::new(&mut *memory_ptr) 
     };
 
-    let mut stack_vec = ZigVec::new(&bump);
+    let mut stack_vec = ExVec::new(&bump);
     
     stack_vec.push(10);
     stack_vec.push(20);
