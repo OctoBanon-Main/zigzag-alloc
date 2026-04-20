@@ -31,7 +31,14 @@ impl Allocator for SystemAllocator {
         #[cfg(target_family = "unix")]
         {
             let mut ptr: *mut c_void = core::ptr::null_mut();
-            let rc = unsafe { libc::posix_memalign(&mut ptr, layout.align(), layout.size()) };
+            
+            let min_align = core::mem::size_of::<*mut c_void>();
+            let align = layout.align().max(min_align); 
+            
+            let size = layout.size();
+
+            let rc = unsafe { libc::posix_memalign(&mut ptr, align, size) };
+            
             if rc != 0 {
                 return None;
             }
