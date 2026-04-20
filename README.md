@@ -40,11 +40,11 @@ The compiled artifacts will be available in the `target/release/` directory:
 Add the library to your logic and use explicit allocators:
 
 ```rust
-use zigzag::alloc::{system::SystemAllocator, arena::Arena};
-use zigzag::ZigVec;
+use zigzag::alloc::{system::SystemAllocator, arena::ArenaAllocator};
+use zigzag::ExVec;
 
-let arena = Arena::new(SystemAllocator);
-let mut v = ZigVec::new(&arena);
+let arena = ArenaAllocator::new(SystemAllocator);
+let mut v = ExVec::new(&arena);
 v.push(42);
 ```
 
