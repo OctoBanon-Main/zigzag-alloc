@@ -92,7 +92,8 @@ pub unsafe fn not_words(dst: *mut usize, n: usize) {
     let chunks = n / 2;
     for i in 0..chunks {
         let a = vld1q_u64(d.add(i * 2));
-        vst1q_u64(d.add(i * 2), vmvnq_u32(vreinterpretq_u32_u64(a)) as _);
+        let inverted = vmvnq_u32(vreinterpretq_u32_u64(a));
+        vst1q_u64(d.add(i * 2), vreinterpretq_u64_u32(inverted));
     }
     for i in (chunks * 2)..n { *dst.add(i) = !*dst.add(i); }
 }
