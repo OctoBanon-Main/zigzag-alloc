@@ -33,6 +33,16 @@ The compiled artifacts will be available in the `target/release/` directory:
 - Linux/macOS: `libzigzag.a` or `libzigzag.so`
 - Windows: `zigzag.dll` and `zigzag.dll.lib`
 
+## Memory Management Strategies
+
+| Allocator  | Thread-Safe | Strategy      | Best Use Case                                           |
+|------------|-------------|---------------|---------------------------------------------------------|
+| `System`   | Yes         | OS native     | Base allocator for long-lived structures.               |
+| `Bump`     | Yes         | Linear offset | Extremely fast, short-lived temp buffers.               |
+| `Arena`    | No          | Linked blocks | Batch-processing tasks (request/frame lifetime).        |
+| `Pool`     | Yes         | Free-list     | Uniform objects (nodes, packets) with no fragmentation. |
+| `Counting` | No          | Wrapper       | Profiling, leak detection, and memory metrics.          |
+
 ## Usage
 
 ### In Rust
