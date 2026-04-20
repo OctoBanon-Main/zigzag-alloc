@@ -9,4 +9,6 @@ pub mod collections;
 #[cfg(feature = "ffi")]
 pub mod ffi;
 
+mod simd;
+
 pub use collections::{ExBox, ExVec, ExString};
