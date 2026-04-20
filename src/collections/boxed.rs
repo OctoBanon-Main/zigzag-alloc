@@ -1,49 +1,63 @@
 use core::{
-    alloc::Layout, fmt, mem, ops::{Deref, DerefMut}, ptr::{self, NonNull}
+    alloc::Layout,
+    fmt,
+    mem,
+    ops::{Deref, DerefMut},
+    ptr::{self, NonNull},
 };
 
 use crate::alloc::allocator::Allocator;
+use crate::simd;
 
 pub struct ExBox<'a, T> {
-    ptr: NonNull<T>,
+    ptr:   NonNull<T>,
     alloc: &'a dyn Allocator,
 }
 
 impl<'a, T> ExBox<'a, T> {
     pub fn new(value: T, alloc: &'a dyn Allocator) -> Option<Self> {
         let layout = Layout::new::<T>();
-
         let ptr: NonNull<T> = if layout.size() == 0 {
             NonNull::dangling()
         } else {
             unsafe { alloc.alloc(layout)?.cast() }
         };
+        unsafe { ptr.as_ptr().write(value) };
+        Some(Self { ptr, alloc })
+    }
 
+    pub fn new_zeroed(value: T, alloc: &'a dyn Allocator) -> Option<Self> {
+        let layout = Layout::new::<T>();
+        let ptr: NonNull<T> = if layout.size() == 0 {
+            NonNull::dangling()
+        } else {
+            let p = unsafe { alloc.alloc(layout)? };
+            unsafe { simd::fill_bytes(p.as_ptr(), 0, layout.size()) };
+            p.cast()
+        };
         unsafe { ptr.as_ptr().write(value) };
         Some(Self { ptr, alloc })
     }
 
     pub fn unbox(b: Self) -> T {
         let value = unsafe { b.ptr.as_ptr().read() };
-
         let layout = Layout::new::<T>();
         if layout.size() > 0 {
             unsafe { b.alloc.dealloc(b.ptr.cast(), layout) };
         }
-
         mem::forget(b);
         value
     }
 
-    #[inline]
-    pub fn as_ptr(b: &Self) -> *const T {
-        b.ptr.as_ptr()
+    pub unsafe fn wipe(b: &mut Self) {
+        let layout = Layout::new::<T>();
+        if layout.size() > 0 {
+            unsafe { simd::fill_bytes(b.ptr.as_ptr() as *mut u8, 0, layout.size()) };
+        }
     }
 
-    #[inline]
-    pub fn as_mut_ptr(b: &mut Self) -> *mut T {
-        b.ptr.as_ptr()
-    }
+    #[inline] pub fn as_ptr(b: &Self)     -> *const T { b.ptr.as_ptr() }
+    #[inline] pub fn as_mut_ptr(b: &mut Self) -> *mut T { b.ptr.as_ptr() }
 }
 
 impl<T> Drop for ExBox<'_, T> {
@@ -68,15 +82,11 @@ impl<T> DerefMut for ExBox<'_, T> {
 }
 
 impl<T: fmt::Debug> fmt::Debug for ExBox<'_, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Debug::fmt(&**self, f)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { fmt::Debug::fmt(&**self, f) }
 }
 
 impl<T: fmt::Display> fmt::Display for ExBox<'_, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&**self, f)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { fmt::Display::fmt(&**self, f) }
 }
 
 impl<T: PartialEq> PartialEq for ExBox<'_, T> {

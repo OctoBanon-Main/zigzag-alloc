@@ -5,16 +5,19 @@ use core::{
 };
 
 use super::allocator::Allocator;
+use crate::simd;
 
 struct Header {
-    next: Option<NonNull<u8>>,
+    next:        Option<NonNull<u8>>,
     full_layout: Layout,
+    user_size:   usize,
+    user_offset: usize,
 }
 
 pub struct ArenaAllocator<A: Allocator> {
-    backing:      A,
-    last_alloc:   Cell<Option<NonNull<u8>>>,
-    alloc_count:  Cell<usize>,
+    backing:     A,
+    last_alloc:  Cell<Option<NonNull<u8>>>,
+    alloc_count: Cell<usize>,
 }
 
 impl<A: Allocator> ArenaAllocator<A> {
@@ -26,14 +29,10 @@ impl<A: Allocator> ArenaAllocator<A> {
         }
     }
 
-    #[inline]
-    pub fn alloc_count(&self) -> usize {
-        self.alloc_count.get()
-    }
+    #[inline] pub fn alloc_count(&self) -> usize { self.alloc_count.get() }
 
     pub fn reset(&self) {
         let mut current = self.last_alloc.get();
-
         while let Some(full_ptr) = current {
             unsafe {
                 let header: Header = ptr::read(full_ptr.as_ptr() as *const Header);
@@ -41,7 +40,25 @@ impl<A: Allocator> ArenaAllocator<A> {
                 self.backing.dealloc(full_ptr, header.full_layout);
             }
         }
+        self.last_alloc.set(None);
+        self.alloc_count.set(0);
+    }
 
+    pub fn reset_zeroed(&self) {
+        let mut current = self.last_alloc.get();
+        while let Some(full_ptr) = current {
+            unsafe {
+                let header: Header = ptr::read(full_ptr.as_ptr() as *const Header);
+                current = header.next;
+
+                if header.user_size > 0 {
+                    let user_ptr = full_ptr.as_ptr().add(header.user_offset);
+                    simd::fill_bytes(user_ptr, 0, header.user_size);
+                }
+
+                self.backing.dealloc(full_ptr, header.full_layout);
+            }
+        }
         self.last_alloc.set(None);
         self.alloc_count.set(0);
     }
@@ -58,6 +75,8 @@ impl<A: Allocator> Allocator for ArenaAllocator<A> {
         let header = Header {
             next:        self.last_alloc.get(),
             full_layout,
+            user_size:   layout.size(),
+            user_offset,
         };
         unsafe { ptr::write(full_ptr.as_ptr() as *mut Header, header) };
 
@@ -71,7 +90,19 @@ impl<A: Allocator> Allocator for ArenaAllocator<A> {
 }
 
 impl<A: Allocator> Drop for ArenaAllocator<A> {
-    fn drop(&mut self) {
-        self.reset();
+    fn drop(&mut self) { self.reset(); }
+}
+
+pub trait ArenaExt: Allocator {
+    unsafe fn alloc_zeroed(&self, layout: Layout) -> Option<NonNull<u8>>;
+}
+
+impl<A: Allocator> ArenaExt for ArenaAllocator<A> {
+    unsafe fn alloc_zeroed(&self, layout: Layout) -> Option<NonNull<u8>> {
+        let ptr = unsafe { self.alloc(layout)? };
+        if layout.size() > 0 {
+            unsafe { simd::fill_bytes(ptr.as_ptr(), 0, layout.size()) };
+        }
+        Some(ptr)
     }
 }

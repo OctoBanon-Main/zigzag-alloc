@@ -15,8 +15,11 @@ fn main() {
         let b = ExBox::new(42, &sys).expect("Failed to alloc Box");
         println!("Box value: {}", *b);
     }
+    
     let stats = sys.stats();
-    println!("System stats after Box: {} bytes allocated\n", stats.bytes);
+    println!("Allocated: {} bytes", stats.bytes_allocated);
+    println!("Deallocated: {} bytes", stats.bytes_freed);
+    println!("Live bytes: {}\n", stats.bytes_live);
 
     println!("=== ExVec & Arena (Linear Allocation) ===");
     {
@@ -46,7 +49,9 @@ fn main() {
 
     println!("\n=== Final Global Stats ===");
     let final_stats = sys.stats();
-    println!("Total allocations: {}", final_stats.allocs);
-    println!("Total deallocations: {}", final_stats.deallocs);
-    println!("Total bytes handled: {}", final_stats.bytes);
+    println!("Total count of alloc() calls: {}", final_stats.allocs);
+    println!("Total count of dealloc() calls: {}", final_stats.deallocs);
+    println!("Total bytes allocated: {}", final_stats.bytes_allocated);
+    println!("Total bytes freed: {}", final_stats.bytes_freed);
+    println!("Current leak/live size: {} bytes", final_stats.bytes_live);
 }

@@ -82,6 +82,7 @@ zigzag_alloc_t alloc = zigzag_system_as_alloc(sys);
 ## Features
 
 - Manual Memory Control: Explicitly pass allocators to containers.
+- High-Performance SIMD: Optimized backends for x86_64 (AVX2/SSE2) and AArch64 (NEON) with SWAR fallback.
 - Arena & Bump: Blazing fast linear allocation strategies.
 - Pool Allocator: Fixed-size block allocation to prevent fragmentation.
 - Zero-cost FFI: Seamless integration with C/C++ via stable ABI.
