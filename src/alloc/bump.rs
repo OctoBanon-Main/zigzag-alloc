@@ -30,38 +30,31 @@ impl BumpAllocator {
     #[inline] pub fn capacity(&self)  -> usize { self.size }
 
     #[inline]
-    pub unsafe fn reset(&self) {
-        self.offset.store(0, Ordering::Release);
+    pub fn reset(&mut self) {
+        self.offset.store(0, Ordering::Relaxed);
     }
 
-    pub unsafe fn reset_zeroed(&self) {
-        self.offset.store(0, Ordering::Release);
+    pub fn reset_zeroed(&mut self) {
+        self.offset.store(0, Ordering::Relaxed);
         unsafe { simd::fill_bytes(self.start, 0, self.size) };
     }
 
-    pub unsafe fn wipe(&self) {
-        unsafe { simd::fill_bytes(self.start, 0, self.size) };
+    pub fn alloc_slice(&self, size: usize, align: usize) -> Option<&mut [u8]> {
+        let layout = Layout::from_size_align(size, align).ok()?;
+        let ptr = self.alloc_raw(layout)?;
+        unsafe {
+            Some(core::slice::from_raw_parts_mut(ptr.as_ptr(), size))
+        }
     }
 
-    pub unsafe fn alloc_zeroed(&self, layout: Layout) -> Option<NonNull<u8>> {
-        let ptr = unsafe { self.alloc(layout)? };
-        unsafe { simd::fill_bytes(ptr.as_ptr(), 0, layout.size()) };
-        Some(ptr)
-    }
-}
-
-impl Allocator for BumpAllocator {
-    unsafe fn alloc(&self, layout: Layout) -> Option<NonNull<u8>> {
+    fn alloc_raw(&self, layout: Layout) -> Option<NonNull<u8>> {
         let size  = layout.size();
         let align = layout.align();
-
         let mut current = self.offset.load(Ordering::Relaxed);
         loop {
             let aligned = current.checked_add(align - 1)? & !(align - 1);
             let end     = aligned.checked_add(size)?;
-
             if end > self.size { return None; }
-
             match self.offset.compare_exchange_weak(
                 current, end,
                 Ordering::AcqRel,
@@ -72,6 +65,11 @@ impl Allocator for BumpAllocator {
             }
         }
     }
+}
 
+impl Allocator for BumpAllocator {
+    unsafe fn alloc(&self, layout: Layout) -> Option<NonNull<u8>> {
+        self.alloc_raw(layout)
+    }
     unsafe fn dealloc(&self, _: NonNull<u8>, _: Layout) {}
 }

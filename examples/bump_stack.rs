@@ -1,26 +1,32 @@
-use std::cell::UnsafeCell;
-
+use std::sync::OnceLock;
+use std::sync::Mutex;
 use zigzag::alloc::bump::BumpAllocator;
 use zigzag::collections::ExVec;
 
-struct SyncCell<T>(UnsafeCell<T>);
+static BUMP: OnceLock<Mutex<BumpAllocator>> = OnceLock::new();
 
-unsafe impl<T> Sync for SyncCell<T> {}
+fn get_bump() -> &'static Mutex<BumpAllocator> {
+    BUMP.get_or_init(|| {
+        let buffer = Box::leak(vec![0u8; 1024].into_boxed_slice());
+        Mutex::new(BumpAllocator::new(buffer))
+    })
+}
 
-static MEMORY: SyncCell<[u8; 1024]> = SyncCell(UnsafeCell::new([0; 1024]));
 fn main() {
-    let memory_ptr = MEMORY.0.get();
-    let bump = unsafe { 
-        BumpAllocator::new(&mut *memory_ptr) 
-    };
+    let bump_mutex = get_bump();
+    let mut bump = bump_mutex.lock().unwrap();
 
-    let mut stack_vec = ExVec::new(&bump);
-    
-    stack_vec.push(10);
-    stack_vec.push(20);
-    stack_vec.push(30);
+    {
+        let mut stack_vec = ExVec::new(&*bump);
+        
+        stack_vec.push(10);
+        stack_vec.push(20);
+        stack_vec.push(30);
 
-    println!("Bump usage: {}/{}", bump.used(), 1024);
+        println!("Bump usage: {}/1024", bump.used());
+    } 
+
+    bump.reset();
     
-    unsafe { bump.reset(); }
+    println!("Bump reset. Usage: {}", bump.used());
 }
