@@ -5,7 +5,6 @@ use zigzag::alloc::{
     counting::CountingAllocator,
 };
 use zigzag::collections::{ExBox, ExVec, ExString};
-use core::fmt::Write;
 
 fn main() {
     let sys = CountingAllocator::new(SystemAllocator);
@@ -41,7 +40,7 @@ fn main() {
             .expect("Failed to create Pool");
         
         let mut s = ExString::new(&pool);
-        write!(s, "Hello from {}!", "ZigZag").unwrap();
+        s.push_str("Hello from ZigZag!");
         
         println!("String in Pool: {}", s.as_str());
         println!("Pool free slots: {}", pool.free_count());
