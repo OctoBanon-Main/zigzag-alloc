@@ -251,7 +251,7 @@ pub unsafe extern "C" fn zigzag_counting_stats(
     ZigzagAllocStats {
         allocs:   s.allocs,
         deallocs: s.deallocs,
-        bytes:    s.bytes,
+        bytes:    s.bytes_live,
     }
 }
  
