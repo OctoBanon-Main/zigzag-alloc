@@ -1,3 +1,5 @@
+#[allow(dead_code)]
+
 use core::{alloc::Layout, ffi::c_void, mem, ptr::NonNull};
 
 use super::allocator::Allocator;
