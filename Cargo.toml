@@ -17,7 +17,7 @@ keywords = [
 categories = ["no-std", "memory-management"]
 
 [lib]
-crate-type = ["rlib", "cdylib"]
+crate-type = ["rlib", "cdylib", "staticlib"]
 
 [profile.release]
 lto = "fat"
