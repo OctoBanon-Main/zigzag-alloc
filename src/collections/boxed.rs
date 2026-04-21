@@ -9,12 +9,19 @@ use core::{
 use crate::alloc::allocator::Allocator;
 use crate::simd;
 
+/// A pointer type for heap allocation with an explicit allocator.
+///
+/// `ExBox` represents unique ownership of a value. When it goes out of scope,
+/// it will call `drop` on the inner value and deallocate the memory using 
+/// the stored allocator reference.
 pub struct ExBox<'a, T> {
     ptr:   NonNull<T>,
     alloc: &'a dyn Allocator,
 }
 
 impl<'a, T> ExBox<'a, T> {
+    /// Allocates memory on the heap and moves `value` into it.
+    /// Returns `None` if the allocator fails.
     pub fn new(value: T, alloc: &'a dyn Allocator) -> Option<Self> {
         let layout = Layout::new::<T>();
         let ptr: NonNull<T> = if layout.size() == 0 {
@@ -39,7 +46,11 @@ impl<'a, T> ExBox<'a, T> {
         Some(Self { ptr, alloc })
     }
 
+    /// Consumes the box and returns the inner value, deallocating the heap memory.
     pub fn unbox(b: Self) -> T {
+        // SAFETY: We read the value out of the pointer. Since we call `mem::forget(b)`
+        // immediately after, the Drop implementation of ExBox won't run, preventing
+        // a double-free or use-after-free of the inner value.
         let value = unsafe { b.ptr.as_ptr().read() };
         let layout = Layout::new::<T>();
         if layout.size() > 0 {

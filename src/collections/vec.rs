@@ -10,6 +10,7 @@ use core::{
 use crate::alloc::allocator::Allocator;
 use crate::simd;
 
+/// A contiguous growable array type using a manual allocator.
 pub struct ExVec<'a, T> {
     ptr:     NonNull<T>,
     len:     usize,
@@ -38,6 +39,9 @@ impl<'a, T> ExVec<'a, T> {
         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
     }
 
+    /// Appends an element to the back of a collection.
+    /// # Panics
+    /// Panics if the new capacity exceeds `isize::MAX` bytes or if the allocator fails.
     pub fn push(&mut self, value: T) {
         if self.len == self.cap { self.grow(); }
         unsafe { self.ptr.as_ptr().add(self.len).write(value) };
@@ -92,6 +96,9 @@ impl<'a, T> ExVec<'a, T> {
     #[cold] fn grow(&mut self) { assert!(self.try_grow(), "Vec: out of memory"); }
 
     fn try_grow(&mut self) -> bool {
+        // SAFETY: If self.cap > 0, self.ptr is guaranteed to be a valid, 
+        // allocated pointer with a layout matching `Layout::array::<T>(self.cap)`.
+        // We use `simd::copy_bytes` for efficient data migration to the new block.
         let new_cap    = if self.cap == 0 { 4 } else { self.cap * 2 };
         let new_layout = match Layout::array::<T>(new_cap) { Ok(l) => l, Err(_) => return false };
         let new_ptr    = match unsafe { self.alloc.alloc(new_layout) } {

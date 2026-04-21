@@ -7,6 +7,11 @@ use core::{
 
 use crate::simd;
 
+/// A fixed-capacity stack-allocated array.
+///
+/// This structure does not heap allocate and has a constant size determined 
+/// by `N`. It is ideal for small, short-lived buffers where performance is 
+/// critical and capacity is known at compile time.
 pub struct ExBoundedArray<T, const N: usize> {
     data: [MaybeUninit<T>; N],
     len: usize,
@@ -90,7 +95,13 @@ impl<T, const N: usize> ExBoundedArray<T, N>  {
         }
     }
 
+    /// Removes the element at `idx` and returns it, moving the last element 
+    /// into its place. 
+    /// 
+    /// O(1) complexity, but does not preserve order.
     pub fn swap_remove(&mut self, idx: usize) -> T {
+        // SAFETY: idx is checked to be within 0..len. `assume_init_read` is safe 
+        // because we only read from initialized slots tracked by `self.len`.
         assert!(idx < self.len, "ExBoundedArray::swap_remove: index out of bounds");
         self.len -= 1;
         unsafe {

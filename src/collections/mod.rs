@@ -1,3 +1,13 @@
+//! # Collections
+//! 
+//! A collection of data structures with **explicit memory management**.
+//! 
+//! Unlike `std::collections`, these structures:
+//! 1. Do not use a global allocator.
+//! 2. Require an explicit [`Allocator`] reference upon creation.
+//! 3. Provide high-performance SIMD-accelerated operations where applicable.
+//! 4. Use "Context" traits for hashing and ordering to decouple data from logic.
+
 pub mod vec;
 pub mod boxed;
 pub mod string;

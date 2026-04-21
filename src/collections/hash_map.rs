@@ -14,6 +14,10 @@ struct Slot<K, V> {
     val: MaybeUninit<V>,
 }
 
+/// A high-performance Hash Map inspired by Google's Abseil Swiss Tables.
+///
+/// It uses a "Control Group" metadata array to perform parallel SIMD lookups,
+/// significantly reducing branch mispredictions and cache misses.
 pub struct ExHashMap<'a, K, V, C: HashContext<K>> {
     ctrl:    NonNull<u8>,
     data:    NonNull<Slot<K, V>>,
@@ -175,10 +179,14 @@ impl<'a, K, V, C: HashContext<K>> ExHashMap<'a, K, V, C> {
     }
 
     #[inline]
+    // SAFETY: The `ctrl` pointer always points to an allocation of size 
+    // `cap + GROUP_WIDTH`. This padding allows SIMD group loads to occur 
+    // at the very end of the table without out-of-bounds access.
     unsafe fn set_ctrl(&mut self, idx: usize, val: u8) {
         unsafe {
             *self.ctrl.as_ptr().add(idx) = val;
             if idx < GROUP_WIDTH {
+                // Wrap-around mirror for SIMD group overflow
                 *self.ctrl.as_ptr().add(self.cap + idx) = val;
             }
         }
