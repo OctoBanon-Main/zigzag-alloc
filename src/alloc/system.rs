@@ -1,4 +1,4 @@
-#[allow(dead_code)]
+#[allow(unused_imports)]
 
 use core::{alloc::Layout, ffi::c_void, mem, ptr::NonNull};
 
