@@ -16,7 +16,7 @@ Before building the project, ensure you have the following installed:
 First, clone the project repository to your local machine:
 
 ```bash
-git clone https://github.com/OctoBanon-Main/zigzag.git
+git clone https://github.com/OctoBanon-Main/zigzag-alloc.git
 cd zigzag
 ```
 

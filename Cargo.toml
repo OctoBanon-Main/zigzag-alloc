@@ -5,7 +5,7 @@ edition = "2024"
 description = "A collection of explicit memory allocators and collections inspired by Zig"
 authors = ["Maksim Bengraf <me@octobanon.com>"]
 license = "MIT"
-repository = "https://github.com/OctoBanon-Main/zigzag"
+repository = "https://github.com/OctoBanon-Main/zigzag-alloc"
 readme = "README.md"
 keywords = [
     "zigzag-alloc",
