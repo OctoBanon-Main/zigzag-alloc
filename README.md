@@ -1,4 +1,4 @@
-# ZigZag
+# ZigZag Alloc
 
 **A collection of explicit memory allocators and collections inspired by Zig.**
 
@@ -17,7 +17,7 @@ First, clone the project repository to your local machine:
 
 ```bash
 git clone https://github.com/OctoBanon-Main/zigzag-alloc.git
-cd zigzag
+cd zigzag-alloc
 ```
 
 **Build the project:**
@@ -30,8 +30,8 @@ cargo build --release
 
 The compiled artifacts will be available in the `target/release/` directory:
 
-- Linux/macOS: `libzigzag.a` or `libzigzag.so`
-- Windows: `zigzag.dll` and `zigzag.dll.lib`
+- Linux/macOS: `libzigzag_alloc.a` or `libzigzag_alloc.so`
+- Windows: `zigzag_alloc.dll` and `zigzag_alloc.dll.lib`
 
 ## Memory Management Strategies
 
@@ -53,7 +53,7 @@ Add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-zigzag-alloc = "1.0.0"
+zigzag-alloc = "^1.0.0"
 ```
 
 Or use the cargo CLI:
@@ -67,8 +67,8 @@ cargo add zigzag-alloc
 The core philosophy is explicit allocation. Unlike standard collections, you must provide an allocator reference when creating a container.
 
 ```rust
-use zigzag::alloc::{system::SystemAllocator, arena::ArenaAllocator};
-use zigzag::collections::ExVec;
+use zigzag_alloc::{system::SystemAllocator, arena::ArenaAllocator};
+use zigzag_alloc::collections::ExVec;
 
 fn main() {
     // 1. Initialize a backing allocator (e.g., System)
@@ -99,7 +99,7 @@ Include the header file and link against the compiled library:
 2. Compile and link with the library:
 
 ```bash
-gcc main.c -I./include -L./target/release -lzigzag -o zigzag_demo
+gcc main.c -I./include -L./target/release -lzigzag_alloc -o zigzag_demo
 ```
 
 Example usage in C:

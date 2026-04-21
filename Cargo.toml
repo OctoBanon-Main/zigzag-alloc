@@ -1,6 +1,6 @@
 [package]
 name = "zigzag-alloc"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2024"
 description = "A collection of explicit memory allocators and collections inspired by Zig"
 authors = ["Maksim Bengraf <me@octobanon.com>"]
