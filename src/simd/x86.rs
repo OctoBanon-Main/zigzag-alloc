@@ -1,5 +1,7 @@
+#![allow(dead_code, unused_imports)]
+
 use core::arch::x86_64::*;
-use super::{BitMask, CTRL_EMPTY, CTRL_DELETED};
+use super::{BitMask, CTRL_EMPTY, GROUP_WIDTH};
 
 pub struct Group(__m128i);
 
@@ -25,15 +27,8 @@ impl Group {
 
     #[inline]
     #[target_feature(enable = "sse2")]
-    pub fn match_deleted(&self) -> BitMask {
-        self.match_byte(CTRL_DELETED)
-    }
-
-    #[inline]
-    #[target_feature(enable = "sse2")]
     pub fn match_empty_or_deleted(&self) -> BitMask {
-        let mask = _mm_movemask_epi8(self.0);
-        BitMask(mask as u32)
+        BitMask(_mm_movemask_epi8(self.0) as u32)
     }
 
     #[inline]
@@ -43,237 +38,174 @@ impl Group {
 }
 
 pub unsafe fn and_words(dst: *mut usize, src: *const usize, n: usize) {
-    #[cfg(target_feature = "avx2")]
-    { unsafe { and_words_avx2(dst, src, n) }; return; }
-    #[allow(unreachable_code)]
-    { unsafe { and_words_sse2(dst, src, n) }; }
+    #[cfg(target_feature = "avx2")] { unsafe { and_words_avx2(dst, src, n); return; } }
+    #[allow(unreachable_code)]        unsafe { and_words_sse2(dst, src, n); }
 }
-
 #[target_feature(enable = "sse2")]
 unsafe fn and_words_sse2(dst: *mut usize, src: *const usize, n: usize) {
-    let d = dst as *mut __m128i;
-    let s = src as *const __m128i;
-    let chunks = n / 2;
-    for i in 0..chunks {
-        unsafe {
-            _mm_storeu_si128(d.add(i),
-                _mm_and_si128(_mm_loadu_si128(d.add(i)), _mm_loadu_si128(s.add(i))))
+    let (d, s) = (dst as *mut __m128i, src as *const __m128i);
+    let c = n / 2;
+    unsafe {
+        for i in 0..c {
+            _mm_storeu_si128(d.add(i), _mm_and_si128(_mm_loadu_si128(d.add(i)), _mm_loadu_si128(s.add(i))));
         }
-    }
-    for i in (chunks * 2)..n {
-        unsafe { *dst.add(i) &= *src.add(i); }
-    }
+        for i in (c * 2)..n { *dst.add(i) &= *src.add(i) }
+    };
 }
-
 #[cfg(target_feature = "avx2")]
 #[target_feature(enable = "avx2")]
 unsafe fn and_words_avx2(dst: *mut usize, src: *const usize, n: usize) {
-    let d = dst as *mut __m256i;
-    let s = src as *const __m256i;
-    let chunks = n / 4;
-    for i in 0..chunks {
-        unsafe {
-            _mm256_storeu_si256(d.add(i),
-                _mm256_and_si256(_mm256_loadu_si256(d.add(i)), _mm256_loadu_si256(s.add(i))))
-        };
-    }
-    let rem_start = chunks * 4;
-    unsafe { and_words_sse2(dst.add(rem_start), src.add(rem_start), n - rem_start) };
+    let (d, s) = (dst as *mut __m256i, src as *const __m256i);
+    let c = n / 4;
+    unsafe {
+        for i in 0..c {
+            _mm256_storeu_si256(d.add(i), _mm256_and_si256(_mm256_loadu_si256(d.add(i)), _mm256_loadu_si256(s.add(i))))
+        }
+        and_words_sse2(dst.add(c * 4), src.add(c * 4), n - c * 4)
+    };
 }
 
 pub unsafe fn or_words(dst: *mut usize, src: *const usize, n: usize) {
-    #[cfg(target_feature = "avx2")]
-    { unsafe { or_words_avx2(dst, src, n) }; return; }
-    #[allow(unreachable_code)]
-    { unsafe { or_words_sse2(dst, src, n) }; }
+    #[cfg(target_feature = "avx2")] { unsafe { or_words_avx2(dst, src, n); return; } }
+    #[allow(unreachable_code)]        unsafe { or_words_sse2(dst, src, n); }
 }
-
 #[target_feature(enable = "sse2")]
 unsafe fn or_words_sse2(dst: *mut usize, src: *const usize, n: usize) {
-    let d = dst as *mut __m128i;
-    let s = src as *const __m128i;
-    let chunks = n / 2;
-    for i in 0..chunks {
-        unsafe {
-            _mm_storeu_si128(d.add(i),
-                _mm_or_si128(_mm_loadu_si128(d.add(i)), _mm_loadu_si128(s.add(i))))
+    let (d, s) = (dst as *mut __m128i, src as *const __m128i);
+    let c = n / 2;
+    unsafe {
+        for i in 0..c {
+            _mm_storeu_si128(d.add(i), _mm_or_si128(_mm_loadu_si128(d.add(i)), _mm_loadu_si128(s.add(i))));
         }
-    }
-    for i in (chunks * 2)..n { 
-        unsafe { *dst.add(i) |= *src.add(i); } 
-    }
+        for i in (c * 2)..n { *dst.add(i) |= *src.add(i) }
+    };
 }
-
 #[cfg(target_feature = "avx2")]
 #[target_feature(enable = "avx2")]
 unsafe fn or_words_avx2(dst: *mut usize, src: *const usize, n: usize) {
-    let d = dst as *mut __m256i;
-    let s = src as *const __m256i;
-    let chunks = n / 4;
-    for i in 0..chunks {
-        unsafe {
-            _mm256_storeu_si256(d.add(i),
-                _mm256_or_si256(_mm256_loadu_si256(d.add(i)), _mm256_loadu_si256(s.add(i))))
-        };
-    }
-    let r = chunks * 4;
-    unsafe { or_words_sse2(dst.add(r), src.add(r), n - r) };
+    let (d, s) = (dst as *mut __m256i, src as *const __m256i);
+    let c = n / 4;
+    unsafe {
+        for i in 0..c {
+            _mm256_storeu_si256(d.add(i), _mm256_or_si256(_mm256_loadu_si256(d.add(i)), _mm256_loadu_si256(s.add(i))));
+        }
+        or_words_sse2(dst.add(c * 4), src.add(c * 4), n - c * 4)
+    };
 }
 
 pub unsafe fn xor_words(dst: *mut usize, src: *const usize, n: usize) {
-    #[cfg(target_feature = "avx2")]
-    { unsafe { xor_words_avx2(dst, src, n) }; return; }
-    #[allow(unreachable_code)]
-    { unsafe { xor_words_sse2(dst, src, n) }; }
+    #[cfg(target_feature = "avx2")] { unsafe { xor_words_avx2(dst, src, n); return; } }
+    #[allow(unreachable_code)]        unsafe { xor_words_sse2(dst, src, n); }
 }
-
 #[target_feature(enable = "sse2")]
 unsafe fn xor_words_sse2(dst: *mut usize, src: *const usize, n: usize) {
-    let d = dst as *mut __m128i;
-    let s = src as *const __m128i;
-    let chunks = n / 2;
-    for i in 0..chunks {
-        unsafe {
-            _mm_storeu_si128(d.add(i),
-                _mm_xor_si128(_mm_loadu_si128(d.add(i)), _mm_loadu_si128(s.add(i))));
+    let (d, s) = (dst as *mut __m128i, src as *const __m128i);
+    let c = n / 2;
+    unsafe {
+        for i in 0..c {
+            _mm_storeu_si128(d.add(i), _mm_xor_si128(_mm_loadu_si128(d.add(i)), _mm_loadu_si128(s.add(i))));
         }
-    }
-    for i in (chunks * 2)..n { 
-        unsafe { *dst.add(i) ^= *src.add(i); } 
-    }
+        for i in (c * 2)..n { *dst.add(i) ^= *src.add(i) }
+    };
 }
-
 #[cfg(target_feature = "avx2")]
 #[target_feature(enable = "avx2")]
 unsafe fn xor_words_avx2(dst: *mut usize, src: *const usize, n: usize) {
-    let d = dst as *mut __m256i;
-    let s = src as *const __m256i;
-    let chunks = n / 4;
-    for i in 0..chunks {
-        unsafe {
-            _mm256_storeu_si256(d.add(i),
-                _mm256_xor_si256(_mm256_loadu_si256(d.add(i)), _mm256_loadu_si256(s.add(i))))
-        };
-    }
-    let r = chunks * 4;
-    unsafe { xor_words_sse2(dst.add(r), src.add(r), n - r) };
+    let (d, s) = (dst as *mut __m256i, src as *const __m256i);
+    let c = n / 4;
+    unsafe {
+        for i in 0..c {
+            _mm256_storeu_si256(d.add(i), _mm256_xor_si256(_mm256_loadu_si256(d.add(i)), _mm256_loadu_si256(s.add(i))));
+        }
+        xor_words_sse2(dst.add(c * 4), src.add(c * 4), n - c * 4)
+    };
 }
 
 pub unsafe fn not_words(dst: *mut usize, n: usize) {
-    #[cfg(target_feature = "avx2")]
-    { unsafe { not_words_avx2(dst, n) }; return; }
-    #[allow(unreachable_code)]
-    { unsafe { not_words_sse2(dst, n) }; }
+    #[cfg(target_feature = "avx2")] { unsafe { not_words_avx2(dst, n); return; } }
+    #[allow(unreachable_code)]        unsafe { not_words_sse2(dst, n); }
 }
-
 #[target_feature(enable = "sse2")]
 unsafe fn not_words_sse2(dst: *mut usize, n: usize) {
-    let d = dst as *mut __m128i;
-    let chunks = n / 2;
+    let d    = dst as *mut __m128i;
+    let ones = _mm_set1_epi8(-1i8);
+    let c    = n / 2;
     unsafe {
-        let ones = _mm_set1_epi8(-1i8);
-        for i in 0..chunks {
+        for i in 0..c {
             _mm_storeu_si128(d.add(i), _mm_xor_si128(_mm_loadu_si128(d.add(i)), ones));
         }
-        for i in (chunks * 2)..n { *dst.add(i) = !*dst.add(i); }
+        for i in (c * 2)..n { *dst.add(i) = !*dst.add(i) }
     }
 }
-
 #[cfg(target_feature = "avx2")]
 #[target_feature(enable = "avx2")]
 unsafe fn not_words_avx2(dst: *mut usize, n: usize) {
-    let d = dst as *mut __m256i;
-    let chunks = n / 4;
+    let d    = dst as *mut __m256i;
+    let ones = _mm256_set1_epi8(-1i8);
+    let c    = n / 4;
     unsafe {
-        let ones = _mm256_set1_epi8(-1i8);
-        for i in 0..chunks {
+        for i in 0..c {
             _mm256_storeu_si256(d.add(i), _mm256_xor_si256(_mm256_loadu_si256(d.add(i)), ones));
         }
-        let r = chunks * 4;
-        not_words_sse2(dst.add(r), n - r);
-    }
+        not_words_sse2(dst.add(c * 4), n - c * 4)
+    };
 }
 
 pub unsafe fn popcount_words(ptr: *const usize, n: usize) -> usize {
     let mut acc = 0usize;
-    unsafe { for i in 0..n { acc += (*ptr.add(i)).count_ones() as usize; } };
+    for i in 0..n { acc += unsafe { (*ptr.add(i)).count_ones() as usize }; }
     acc
 }
 
 pub unsafe fn fill_bytes(ptr: *mut u8, val: u8, n: usize) {
-    #[cfg(target_feature = "avx2")]
-    { unsafe { fill_bytes_avx2(ptr, val, n) }; return; }
-    #[allow(unreachable_code)]
-    { unsafe { fill_bytes_sse2(ptr, val, n) }; }
+    #[cfg(target_feature = "avx2")] { unsafe { fill_bytes_avx2(ptr, val, n); return; } }
+    #[allow(unreachable_code)]        unsafe { fill_bytes_sse2(ptr, val, n); }
 }
-
 #[target_feature(enable = "sse2")]
 unsafe fn fill_bytes_sse2(ptr: *mut u8, val: u8, n: usize) {
+    let v =  _mm_set1_epi8(val as i8);
     let d = ptr as *mut __m128i;
-    let chunks = n / 16;
-    unsafe {
-        let v = _mm_set1_epi8(val as i8);
-        for i in 0..chunks { _mm_storeu_si128(d.add(i), v); }
-        for i in (chunks * 16)..n { *ptr.add(i) = val; }
-    };
+    let c = n / 16;
+    for i in 0..c { unsafe { _mm_storeu_si128(d.add(i), v) }; }
+    for i in (c * 16)..n { unsafe { *ptr.add(i) = val }; }
 }
-
 #[cfg(target_feature = "avx2")]
 #[target_feature(enable = "avx2")]
 unsafe fn fill_bytes_avx2(ptr: *mut u8, val: u8, n: usize) {
+    let v =  _mm256_set1_epi8(val as i8);
     let d = ptr as *mut __m256i;
-    let chunks = n / 32;
-    unsafe {
-        let v = _mm256_set1_epi8(val as i8);
-        for i in 0..chunks { _mm256_storeu_si256(d.add(i), v); }
-        let r = chunks * 32;
-        fill_bytes_sse2(ptr.add(r), val, n - r);
-    }
+    let c = n / 32;
+    for i in 0..c { unsafe { _mm256_storeu_si256(d.add(i), v) }; }
+    unsafe { fill_bytes_sse2(ptr.add(c * 32), val, n - c * 32); }
 }
 
 pub unsafe fn find_byte(ptr: *const u8, val: u8, n: usize) -> Option<usize> {
-    #[cfg(target_feature = "avx2")]
-    if n >= 32 { return unsafe { find_byte_avx2(ptr, val, n) }; }
+    #[cfg(target_feature = "avx2")] if n >= 32 { unsafe { return find_byte_avx2(ptr, val, n); } }
     unsafe { find_byte_sse2(ptr, val, n) }
 }
-
 #[target_feature(enable = "sse2")]
 unsafe fn find_byte_sse2(ptr: *const u8, val: u8, n: usize) -> Option<usize> {
+    let needle = _mm_set1_epi8(val as i8);
     let s = ptr as *const __m128i;
-    let chunks = n / 16;
-    unsafe {
-        let needle = _mm_set1_epi8(val as i8);
-        for i in 0..chunks {
-            let block = _mm_loadu_si128(s.add(i));
-            let mask  = _mm_movemask_epi8(_mm_cmpeq_epi8(block, needle)) as u32;
-            if mask != 0 {
-                return Some(i * 16 + mask.trailing_zeros() as usize);
-            }
-        }
-        for i in (chunks * 16)..n {
-            if *ptr.add(i) == val { return Some(i); }
-        }
+    let c = n / 16;
+    for i in 0..c {
+        let mask = unsafe { _mm_movemask_epi8(_mm_cmpeq_epi8(_mm_loadu_si128(s.add(i)), needle)) as u32 };
+        if mask != 0 { return Some(i * 16 + mask.trailing_zeros() as usize); }
     }
+    for i in (c * 16)..n { if unsafe { *ptr.add(i) } == val { return Some(i); } }
     None
 }
-
 #[cfg(target_feature = "avx2")]
 #[target_feature(enable = "avx2")]
 unsafe fn find_byte_avx2(ptr: *const u8, val: u8, n: usize) -> Option<usize> {
+    let needle = _mm256_set1_epi8(val as i8);
     let s = ptr as *const __m256i;
-    let chunks = n / 32;
-    unsafe {
-        let needle = _mm256_set1_epi8(val as i8);
-        for i in 0..chunks {
-            let block = _mm256_loadu_si256(s.add(i));
-            let mask  = _mm256_movemask_epi8(_mm256_cmpeq_epi8(block, needle)) as u32;
-            if mask != 0 {
-                return Some(i * 32 + mask.trailing_zeros() as usize);
-            }
-        }
-        let r = chunks * 32;
-        find_byte_sse2(ptr.add(r), val, n - r)
+    let c = n / 32;
+    for i in 0..c {
+        let mask = unsafe { _mm256_movemask_epi8(_mm256_cmpeq_epi8(_mm256_loadu_si256(s.add(i)), needle)) as u32 };
+        if mask != 0 { return Some(i * 32 + mask.trailing_zeros() as usize); }
     }
+    unsafe { find_byte_sse2(ptr.add(c * 32), val, n - c * 32) }
 }
 
 pub unsafe fn copy_bytes(dst: *mut u8, src: *const u8, n: usize) {
