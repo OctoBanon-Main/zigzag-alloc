@@ -30,7 +30,4 @@ panic = "abort"
 [features]
 default = ["std"]
 std = []
-ffi =[]
-
-[dependencies]
-libc = "0.2.185"
+ffi = []
