@@ -11,7 +11,8 @@ pub mod ffi;
 
 mod simd;
 
-pub use collections::{ExBox,
+pub use collections::{
+    ExBox,
     ExHashMap,
     ExString,
     ExVec,
