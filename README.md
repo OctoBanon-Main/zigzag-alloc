@@ -67,8 +67,8 @@ cargo add zigzag-alloc
 The core philosophy is explicit allocation. Unlike standard collections, you must provide an allocator reference when creating a container.
 
 ```rust
-use zigzag_alloc::{system::SystemAllocator, arena::ArenaAllocator};
-use zigzag_alloc::collections::ExVec;
+use zigzag_alloc::alloc::{system::SystemAllocator, arena::ArenaAllocator};
+use zigzag_alloc::ExVec;
 
 fn main() {
     // 1. Initialize a backing allocator (e.g., System)
