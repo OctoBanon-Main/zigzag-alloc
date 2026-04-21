@@ -1,12 +1,16 @@
 pub mod vec;
 pub mod boxed;
 pub mod string;
-pub mod hashmap;
+pub mod hash_map;
+pub mod priority_queue;
+pub mod bounded_array;
 
 pub use vec::ExVec;
 pub use boxed::ExBox;
 pub use string::ExString;
-pub use hashmap::ExHashMap;
+pub use hash_map::ExHashMap;
+pub use priority_queue::ExPriorityQueue;
+pub use bounded_array::ExBoundedArray;
 
 pub trait HashContext<K> {
     fn hash(&self, key: &K) -> u64;
