@@ -6,6 +6,7 @@ description = "A collection of explicit memory allocators and collections inspir
 authors = ["Maksim Bengraf <me@octobanon.com>"]
 license = "MIT"
 repository = "https://github.com/OctoBanon-Main/zigzag"
+readme = "README.md"
 keywords = [
     "zigzag",
     "no_std",
