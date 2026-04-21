@@ -1,10 +1,10 @@
-use zigzag::alloc::{
+use zigzag_alloc::alloc::{
     system::SystemAllocator,
     arena::ArenaAllocator,
     pool::PoolAllocator,
     counting::CountingAllocator,
 };
-use zigzag::collections::{ExBox, ExVec, ExString};
+use zigzag_alloc::collections::{ExBox, ExVec, ExString};
 
 fn main() {
     let sys = CountingAllocator::new(SystemAllocator);

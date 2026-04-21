@@ -1,5 +1,5 @@
-use zigzag::alloc::system::SystemAllocator;
-use zigzag::collections::{ExPriorityQueue, OrdContext};
+use zigzag_alloc::alloc::system::SystemAllocator;
+use zigzag_alloc::collections::{ExPriorityQueue, OrdContext};
 
 struct MinIntContext;
 impl OrdContext<i32> for MinIntContext {

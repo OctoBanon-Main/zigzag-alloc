@@ -1,6 +1,6 @@
-use zigzag::alloc::system::SystemAllocator;
-use zigzag::alloc::pool::PoolAllocator;
-use zigzag::collections::ExString;
+use zigzag_alloc::alloc::system::SystemAllocator;
+use zigzag_alloc::alloc::pool::PoolAllocator;
+use zigzag_alloc::collections::ExString;
 use core::fmt::Write;
 
 fn main() {

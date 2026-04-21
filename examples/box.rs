@@ -1,5 +1,5 @@
-use zigzag::alloc::system::SystemAllocator;
-use zigzag::collections::ExBox;
+use zigzag_alloc::alloc::system::SystemAllocator;
+use zigzag_alloc::collections::ExBox;
 
 fn main() {
     let alloc = SystemAllocator;

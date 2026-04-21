@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "zigzag"
+name = "zigzag-alloc"
 version = "1.0.0"

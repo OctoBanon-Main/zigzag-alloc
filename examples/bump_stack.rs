@@ -1,7 +1,7 @@
 use std::sync::OnceLock;
 use std::sync::Mutex;
-use zigzag::alloc::bump::BumpAllocator;
-use zigzag::collections::ExVec;
+use zigzag_alloc::alloc::bump::BumpAllocator;
+use zigzag_alloc::collections::ExVec;
 
 static BUMP: OnceLock<Mutex<BumpAllocator>> = OnceLock::new();
 

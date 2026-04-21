@@ -1,6 +1,6 @@
-use zigzag::alloc::system::SystemAllocator;
-use zigzag::alloc::arena::ArenaAllocator;
-use zigzag::collections::ExVec;
+use zigzag_alloc::alloc::system::SystemAllocator;
+use zigzag_alloc::alloc::arena::ArenaAllocator;
+use zigzag_alloc::collections::ExVec;
 
 fn main() {
     let sys = SystemAllocator;

@@ -1,5 +1,5 @@
-use zigzag::alloc::system::SystemAllocator;
-use zigzag::collections::{ExHashMap, U64HashCtx};
+use zigzag_alloc::alloc::system::SystemAllocator;
+use zigzag_alloc::collections::{ExHashMap, U64HashCtx};
 
 fn main() {
     let alloc = SystemAllocator;

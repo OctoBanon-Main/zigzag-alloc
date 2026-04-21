@@ -1,4 +1,4 @@
-use zigzag::collections::bounded_array::ExBoundedArray;
+use zigzag_alloc::collections::bounded_array::ExBoundedArray;
 
 fn main() {
     let mut tasks = ExBoundedArray::<u32, 16>::new();
