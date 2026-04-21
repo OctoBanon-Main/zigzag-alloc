@@ -26,8 +26,6 @@ impl Allocator for SystemAllocator {
             return Some(NonNull::dangling());
         }
 
-        let align = layout.align().max(mem::size_of::<*const ()>());
-
         #[cfg(target_family = "unix")]
         {
             let mut ptr: *mut c_void = core::ptr::null_mut();
@@ -35,9 +33,7 @@ impl Allocator for SystemAllocator {
             let min_align = core::mem::size_of::<*mut c_void>();
             let align = layout.align().max(min_align); 
             
-            let size = layout.size();
-
-            let rc = unsafe { libc::posix_memalign(&mut ptr, align, size) };
+            let rc = unsafe { posix_memalign(&mut ptr, align, size) };
             
             if rc != 0 {
                 return None;
@@ -47,13 +43,13 @@ impl Allocator for SystemAllocator {
 
         #[cfg(target_family = "windows")]
         {
+            let align = layout.align().max(mem::size_of::<*const ()>());
             let ptr = unsafe { _aligned_malloc(size, align) as *mut u8 };
             NonNull::new(ptr)
         }
 
         #[cfg(not(any(target_family = "unix", target_family = "windows")))]
         {
-            let _ = align;
             None
         }
     }
@@ -65,7 +61,7 @@ impl Allocator for SystemAllocator {
 
         #[cfg(target_family = "unix")]
         {
-            free(ptr.as_ptr() as *mut c_void)
+            unsafe { free(ptr.as_ptr() as *mut c_void) }
         }
 
         #[cfg(target_family = "windows")]
