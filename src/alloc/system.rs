@@ -12,6 +12,7 @@
 //! (arena, bump, pool) typically use a `SystemAllocator` as their *backing*
 //! allocator.
 
+#[warn(unused_doc_comments)]
 #[allow(unused_imports)]
 
 use core::{alloc::Layout, ffi::c_void, mem, ptr::NonNull};
