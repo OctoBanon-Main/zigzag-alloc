@@ -1,4 +1,4 @@
-#include "zigzag.h"
+#include "zigzag_alloc.h"
 #include <stdio.h>
 
 int main() {

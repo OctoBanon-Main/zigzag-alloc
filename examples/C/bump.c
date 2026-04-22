@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "zigzag.h"
+#include "zigzag_alloc.h"
 
 static uint8_t MEMORY[1024];
 

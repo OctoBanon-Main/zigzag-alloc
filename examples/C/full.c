@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "zigzag.h"
+#include "zigzag_alloc.h"
 
 int main() {
     zigzag_counting_t *sys_counter = zigzag_counting_create();
