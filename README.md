@@ -105,7 +105,7 @@ gcc main.c -I./include -L./target/release -lzigzag_alloc -o zigzag_demo
 Example usage in C:
 
 ```C
-#include "zigzag.h"
+#include "zigzag_alloc.h"
 
 zigzag_system_t* sys = zigzag_system_create();
 zigzag_alloc_t alloc = zigzag_system_as_alloc(sys);
