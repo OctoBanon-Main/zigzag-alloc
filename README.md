@@ -25,7 +25,7 @@ cd zigzag-alloc
 To compile the library (including the static/dynamic libraries for C integration), run:
 
 ```bash
-cargo build --release
+cargo build --release --features ffi
 ```
 
 The compiled artifacts will be available in the `target/release/` directory:
